@@ -1,0 +1,88 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+---
+title: "assignment1"
+author: "Keith DeNivo"
+date: "2024-02-03"
+output:
+  pdf_document: default
+  html_document: default
+
+
+http://rpubs.com/divide_by_zero/1144973
+Overview. 
+What the world thinks of Trump.
+The article chosen link https://fivethirtyeight.com/features/what-the-world-thinks-of-trump/.  The article includes countries approval ratings of Donald Trump and the U.S.A. in general.  Specifically the topic from the article that will be analyzed is "Have a favorable view of the U.S.?" The poll was conducted by Pew Research Center which surveyed ~1000 people from every country. the average approval was extracted and analyzed. Comments are provided after the r code blocks.
+
+```{r load_libraries_and_get_data }
+
+library(devtools)
+library(RCurl)
+library(plyr)
+library(dplyr)
+library(tidyverse)
+library(DescTools)
+library(ggpubr)
+library(openintro)
+library (readr)
+
+
+
+
+c <- getURL("https://raw.githubusercontent.com/fivethirtyeight/data/master/trump-world-trust/TRUMPWORLD-us.csv")
+world_us_approve <- data.frame(read.csv(text = c ))
+```
+Data Scraping. 
+Data was downloaded and put into a data frame world_us_approve
+
+
+```{r data_info}
+glimpse(world_us_approve)
+names(world_us_approve)
+```
+Data Information. 
+General info about the data
+
+``` {r countries_surveyed}
+
+countries <- world_us_approve[0,3:39]
+ countries
+ 
+```
+ Countries Surveyed. 
+ Above is a list of the countries surveyed
+ 
+ 
+```{r create_trimmed_data_frame}
+
+average_world_us_approve <- data.frame(year = world_us_approve$year, average_world_approval = world_us_approve$avg) 
+```
+Data Frame with Subset. 
+a new data frame average_world_us_approve was created that only had the years and the average country approval rating of the US. the avg column was renamed average_world_approval.
+
+```{r graph_average}
+
+average_world_us_approve_plot <- ggplot( average_world_us_approve, aes(x = year, y = average_world_approval)) + 
+   geom_point() 
+   average_world_us_approve_plot +
+stat_smooth(method = "loess",
+formula = y ~ x ,
+geom = "smooth" )
+```
+Graph 1. 
+Graph of the years vs the average approval ratings with a basic trendline.
+
+```{r basic_stats}
+ min(average_world_us_approve$year)
+ max(average_world_us_approve$year)
+ range(average_world_us_approve$average_world_approval)
+ 
+ mean(average_world_us_approve$average_world_approval)
+sd(average_world_us_approve$average_world_approval)
+```
+Findings and Recommendations. 
+The world approval of the U.S.A. averages at 53.5% from 2000 to 2017. the world approval of the US decreased from 2000 to 2005 which coincides with the Bush era and then the approval rating increased with the Obama presidency. Then approvals decreased again with the presidency of Trump, however it did not decrease to levels below the Bush presidency.
+In order to verify the work, more information from more sources would need to be gathered such as additional polls from other institutions.  One way to add information would be to see which countries like the US more than average would be to take the ratio of each countries approval rating and divide it by the average.  This ratio would tell you which country favors the US more than the average or not.  A graph of this ratio over time would show if the country consistently favors the US more than the average or if they do not.
