@@ -1,0 +1,23 @@
+CREATE TABLE movie_rating (PersonID VARCHAR(255),
+ Barbie FLOAT,
+ Oppenheimer FLOAT,
+ GodzillaMinusOne FLOAT,
+ Elvis FLOAT,
+ Dune FLOAT,
+ JurassicWorldDominion FLOAT );
+INSERT INTO movie_rating (PersonID, Barbie, Oppenheimer, GodzillaMinusOne, Elvis, Dune, JurassicWorldDominion)
+VALUES ("Person1",3,4,5,4,1,1),
+("Person2",3,4.5,4,3,4,2.5),
+("Person3",3,4,2,3,1,3),
+("Person4",3,5,5,2,1,3),
+("Person5",3,5,5,4,5,3),
+("Person6",1,4,4,4,2,2),
+("Person7",3,5,3,3,4,3),
+("Person8",null,4,null,null,null,null),
+("Person9",3,4,4,5,3,4),
+("Person10",5,2,5,2,5,3),
+("Person11",3,5,2,3,3,3),
+("Person12",4,null,null,4,null,null),
+("Person13",4,5,3,3,5,3),
+("Person14",4,null,null,2,5,2),
+("Person15",2,4,3.5,3,3,1);

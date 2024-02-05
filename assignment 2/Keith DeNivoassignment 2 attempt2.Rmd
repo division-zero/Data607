@@ -1,0 +1,171 @@
+---
+title: "Data 607 Assignment 2 Attempt"
+author: "Keith DeNivo"
+date: "2024-02-04"
+output: html_document
+---
+http://rpubs.com/divide_by_zero/1145333
+
+<header>Intro.<header>
+After using MySQLconnection to generate and post the movie ratings table into cunydata607sql.mysql.database.azure.com an attempt was made to connect to cunydata607sql.mysql.database.azure.com using R/Rstudio. Ideally the table would then be imported and converted to an R dataframe.
+```{r packages}
+library(RODBC)
+library(RSQLite)
+library(RMySQL)
+library(DBI)
+library(odbc)
+library(dplyr)
+library(dbplyr)
+library(RPostgres)
+library(sqldf)
+```
+<header>Packages:
+A variety of packages was used to attempt to connect to cunydata607sql.mysql.database.azure.com.
+
+``` {r connectionAttempts}
+
+
+#odbcDriverConnect(connection = "Driver=SQL #Server;Server=cunydata607sql.mysql.database.azure.com;Port=3306;Uid=keith.denivo49#;Pwd=keith.denivo49;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")  
+#ODBC connection failed
+
+#conn <- DBI::dbConnect(
+ #   odbc::odbc(),
+ #   Driver = "SQL Server",
+ #   Server = "cunydata607sql.mysql.database.azure.com",
+   
+#    uid = "keith.denivo49",
+ #   pwd = "keith.denivo49",
+#    
+#  )
+#connection failed
+
+
+
+mysqlconnection = dbConnect(RMySQL::MySQL(),
+                            server = "cunydata607sql.mysql.database.azure.com",
+                            host="cunydata607sql.mysql.database.azure.com",
+                            port=3306,
+                            user="keith.denivo49",
+                            password="keith.denivo49")
+#runs, but was unable to access the table.
+
+ DBIconnect <- DBI::dbConnect(RSQLite::SQLite(), "cunydata607sql.mysql.database.azure.com")
+#runs but was unsure if it accomplishes anything
+ 
+liteconn <- dbConnect(RSQLite::SQLite(), "cunydata607sql.mysql.database.azure.com")
+#runs
+
+
+#DBI_Connection <- DBI::dbConnect(odbc(), 
+#                      driver = "SQL Server",
+#                      server="cunydata607sql.mysql.database.azure.com",
+#                      Uid="keith.denivo49",
+ #                           Pwd="keith.denivo49")
+#connection failed
+
+#dt1 <- sqlFetch(channel=mysqlconnection, sqtable = "movie_rating") 
+# an attempt to fetch the table.
+
+mysqlconnection <- dbConnect(RMySQL::MySQL(),
+                           # server = "cunydata607sql.mysql.database.azure.com",
+                            host="cunydata607sql.mysql.database.azure.com",
+                            port=3306,
+                            user="keith.denivo49",
+                            password="keith.denivo49")
+#runs 
+
+mysqliteconnection <- dbConnect(SQLite(),
+                            server = "cunydata607sql.mysql.database.azure.com",
+                            #host="cunydata607sql.mysql.database.azure.com",
+                            port=3306,
+                            user="keith.denivo49",
+                            password="keith.denivo49")
+#runs without errors
+
+conn = dbConnect(SQLite(), server="cunydata607sql.mysql.database.azure.com",user='keith.denivo49',port=3306, password='keith.denivo49')
+#runs without errors
+
+#conn = dbConnect(RMySQL::MySQL(), #server="cunydata607sql.mysql.database.azure.com",user='keith.denivo49',port=3306, #password='keith.denivo49')
+#another attempt to connect to the server
+
+unique(odbcListDrivers()[[1]])
+#check if the correct driver is SQL Server
+
+#odbcconn <- odbc::dbConnect(odbc(), 
+ #                           Driver = "SQL Server", 
+ #                           Server = "cunydata607sql.mysql.database.azure.com",
+ #                           Uid="keith.denivo49",
+ #                           Pwd="keith.denivo49")
+#errors out
+
+#rscon <- DBI::dbConnect(odbc::odbc(),
+ #                       Driver    = "SQL Server", 
+  #                      Server    = "cunydata607sql.mysql.database.azure.com",
+ #                       Database  = "My Database",
+ #                       UID       = "keith.denivo49",
+ #                       PWD       = "keith.denivo49"
+ #                       #,Port      = 3306,
+ #                       #Port = 1433
+ #                       )
+#Error: nanodbc/nanodbc.cpp:1138: 01000
+#[Microsoft][ODBC SQL Server Driver][DBNETLIB]SQL Server does not exist or access denied. 
+#[Microsoft][ODBC SQL Server Driver][DBNETLIB]ConnectionOpen (Connect())
+
+#dbListTables(conn)
+# dbListTables(mysqlconnection) #could not run statement: No database selected
+
+dbListTables(mysqliteconnection)
+#runs but only lists character (0) for a table
+
+#dbReadTable(conn, movie_rating)
+#dbReadTable(mysqliteconnection)
+#attempts to read in the table using the connections that did not error out
+
+#data <- dbGetQuery(conn , "SELECT * FROM movie_rating")
+#data <- dbGetQuery(conn , "SELECT * FROM movie_rating")
+#data <- dbGetQuery(mysqliteconnection , "SELECT * FROM #`keith.denivo49`.movie_rating")
+#attempts to read in the table using the connections that did not error out
+
+src_dbi(conn)
+
+src_dbi(liteconn)
+src_dbi(mysqliteconnection)
+dbListTables(mysqliteconnection)
+#shows additional information about the connection to the database
+
+#src_dbi(mysqlconnection) #errors out
+#dbListFields(conn)
+
+#RMySQL::dbListTables(mysqlconnection, sqldf('SELECT * FROM movie_rating;'))
+#RMySQL::dbListTables(mysqliteconnection)
+#errors out
+
+
+#con <- dbConnect(RPostgres::Postgres(),dbname = 'keith.denivo49', 
+#                 host = 'cunydata607sql.mysql.database.azure.com', # 
+#                 port = 5432, # or any other port specified by your DBA
+#                user = 'keith.denivo49',
+ #                password = 'keith.denivo49')
+#Error: connection to server at "cunydata607sql.mysql.database.azure.com" #(20.84.210.207), port 5432 failed: Connection timed out (0x0000274C/10060)
+#	Is the server running on that host and accepting TCP/IP connections?
+
+```
+<header>information:
+Any attempt to connect to cunydata607sql.mysql.database.azure.com resulted in failure. Or at least a failure to recognize the table was was supplied by mySQLworkbench scripts.
+
+#```{sql }
+
+#USE cunydata607sql.mysql.database.azure.com;
+#knitr::opts_chunk$set(connection = mysqliteconnection);
+
+#SELECT * FROM movie_rating;
+#SELECT * FROM `keith.denivo49`.movie_rating";
+
+#attempts to connect to database using sql script language
+
+#```
+
+
+<header>Conclusion:
+
+Initially when the table was constructed in mySQL workbench "null" was used in the table for the missing movie ratings in the hopes that R would be able to identify that there was data missing and to not count them for operations like mean. 
