@@ -1,0 +1,90 @@
+---
+title: "Data 607 Assignment 2 Attempt"
+author: "Keith DeNivo"
+date: "2024-02-04"
+output: html_document
+---
+
+http://rpubs.com/divide_by_zero/1146219
+
+<header>Introduction<header>
+After using MySQLconnection to generate and post the movie ratings table into cunydata607sql.mysql.database.azure.com an attempt was made to connect to cunydata607sql.mysql.database.azure.com using R/Rstudio. After a successful connection with assistance, a the table was loaded with the movie ratings from the database into a dataframe.
+```{r packages}
+library(RODBC)
+library(RSQLite)
+library(RMySQL)
+library(DBI)
+library(odbc)
+library(dplyr)
+library(dbplyr)
+library(RPostgres)
+library(sqldf)
+```
+<header>Packages:
+A variety of packages was used to attempt to connect to cunydata607sql.mysql.database.azure.com.
+
+``` {r connection_to_db}
+
+vectorpass <- c('t','h','e','q','u','i','c','k','b','r','o','w','n','f','o','x','j','u','m','p','o','v','e','r','l','a','z','y','d','o','g','0','1','2','3','4','5','6','7','8','9',".")
+#list of alphanumeric characters to make the password into a simple code.
+
+pass = paste(vectorpass[8],vectorpass[3],vectorpass[6],vectorpass[1],vectorpass[2],vectorpass[42],vectorpass[29],vectorpass[3],vectorpass[13],vectorpass[6],vectorpass[22],vectorpass[11],vectorpass[36],vectorpass[41],sep="")
+#constructing the password from the list
+
+mysqlconnection <- dbConnect(RMySQL::MySQL(),
+
+                             host="cunydata607sql.mysql.database.azure.com",
+
+                             dbname = "keith.denivo49",
+
+                             port=3306,
+
+                             user="keith.denivo49",
+
+                             password=pass)
+#connecting to database.
+src_dbi(mysqlconnection)
+#created table movie_rating is listed
+
+```
+<header>Connection to database:
+Successfully connected to database. Table created from SQL code in MySQLworkbench recognized by R. For the password, anyone with the code would be able to determine the password by viewing "pass" or counting the elements in "the "vectorpass" vector, the password however is not explicitly stated directly, so if someone did not want to know/view the password they would be able to do so.
+
+```{r dataframe }
+
+movie_df <- dbReadTable(mysqlconnection, "movie_rating")
+#read table from database into a dataframe.
+View(movie_df)
+
+average_movie_rating <- colMeans(movie_df[,2:7], na.rm=TRUE)
+print("The average rating for each movie is ")
+print(average_movie_rating)
+#displaying the average movie ratings after removing the NA values
+
+movie_names <- c("Barbie", "Oppenheimer", "Godzilla Minus One", "Elvis", "Dune", "Jurassic World Dominion")
+
+number_of_missing_ratings <- c(sum(is.na(movie_df$Barbie)),sum(is.na(movie_df$Oppenheimer)),sum(is.na(movie_df$GodzillaMinusOne)),sum(is.na(movie_df$Elvis)),sum(is.na(movie_df$Dune)),sum(is.na(movie_df$JurassicWorldDominion)))
+
+#View(naeachfilm)
+numofna <- data.frame(movie_names,number_of_missing_ratings)
+View(numofna)
+print("the number of missing ratings for each movie ")
+print(numofna)
+#constructing a dataframe consisting of the number of missing ratings in the original movie dataframe.
+
+standard_deviation_ratings <- c(sd(movie_df$Barbie, na.rm = TRUE), sd(movie_df$Oppenheimer, na.rm = TRUE),sd(movie_df$GodzillaMinusOne, na.rm = TRUE), sd(movie_df$Elvis, na.rm = TRUE), sd(movie_df$Dune, na.rm = TRUE), sd(movie_df$JurassicWorldDominion, na.rm = TRUE) )
+
+View(standard_deviation_ratings)
+stdev_ratings <- data.frame(movie_names,standard_deviation_ratings)
+View(stdev_ratings)
+print("the standard deviation of the ratings for each movie ")
+print(stdev_ratings)
+# the standard deviation of the ratings for each movie
+
+
+```
+
+
+<header>Conclusion<header>:
+
+Initially when the table was constructed in mySQL workbench "NULL" was used in the table for the missing movie ratings. When R converted the table into a dataframe, the NULL's were imported as "NA". It is possible to perform mathematical operations on the dataframe columns if the NAs are removed. Transparency on the number of data points collected   The standard deviation has the number of data points in it's formula, so a higher value is indicative of not only the spread of values but also the number of values. The number of data points should be transparent. The number of missing ratings out of the 15 people surveyed is shown.     
