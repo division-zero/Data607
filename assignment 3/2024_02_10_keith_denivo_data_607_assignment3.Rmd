@@ -5,7 +5,9 @@ date: "2024-02-10"
 output: html_document
 ---
 
-https://rpubs.com/divide_by_zero/1147567
+https://rpubs.com/divide_by_zero/1147572
+Note on question 4 html rpubs does not show full regex expressions, it deletes the "*" 
+
 
 ```{r library}
 
