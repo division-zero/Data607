@@ -1,0 +1,196 @@
+---
+title: "data 607 assignment 3"
+author: "Keith DeNivo"
+date: "2024-02-10"
+output: html_document
+---
+
+https://rpubs.com/divide_by_zero/1147567
+
+```{r library}
+
+library(plyr)
+library(tidyverse)
+library(dplyr)
+library(ggpubr)
+library (readr)
+library(RCurl)
+library(rvest)
+
+```
+ 
+ <b><header>Introduction:</header></b>
+ Loaded what was believed to be relevant libraries. <br>
+ Homework questions and answers: <br>
+ Question 1 <br>
+ Using the 173 majors listed in fivethirtyeight.com’s College Majors dataset [https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/], provide code that identifies the majors that contain either "DATA" or "STATISTICS"
+
+```{r read data}
+
+
+c <- getURL("https://raw.githubusercontent.com/fivethirtyeight/data/master/college-majors/majors-list.csv")
+major_list_df <- data.frame(read.csv(text = c) )
+#put the data into a dataframe
+major_list <- as.list(major_list_df[,2])
+glimpse(major_list)
+#puts the majors column into a list of majors
+```
+<header>Question 1 continued</header>
+Data was scraped from the web into a dataframe.  the majors in the dataframe were then converted into a list.
+
+"provide code that identifies the majors that contain either "DATA" or "STATISTICS""
+```{r Q1}
+
+
+data_maj <- grep(pattern = 'data', major_list, value = TRUE, ignore.case = TRUE)
+# picks the majors with "data" in its string.
+stats_maj <- grep(pattern = 'statistics', major_list, value = TRUE, ignore.case = TRUE)
+#picks the majors with "statistics" in its string
+data_or_stat <- c(data_maj, stats_maj)
+#combines the statistics majors and the data majors into one list
+print(data_or_stat)
+
+```
+<header>Question1 continued</header>
+The statistics majors were pulled from the list, then the data majors were pulled.  The lists were then combined into one list.
+
+
+<header>Question2:</header>
+Write code that transforms the data below<br>
+[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+[13] "olive"        "salal berry"
+
+Into a format like this:
+c("bell pepper", "bilberry", "blackberry", "blood orange", "blueberry", "cantaloupe", "chili pepper", "cloudberry", "elderberry", "lime", "lychee", "mulberry", "olive", "salal berry")
+```{r fruits Q2}
+
+answer <- c("bell pepper", "bilberry", "blackberry", "blood orange", "blueberry", "cantaloupe", "chili pepper", "cloudberry", "elderberry", "lime", "lychee", "mulberry", "olive", "salal berry")
+print(answer)
+#the answer to compare results to
+
+fruity <- '[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange" [5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"   [9] "elderberry"   "lime"         "lychee"       "mulberry"     [13] "olive"        "salal berry"'
+#assuming the "data" was a single string
+print(fruity)
+fruity1 <- str_replace_all(fruity, "[:digit:]", "")
+fruity2 <- gsub('[[]]', '', fruity1)
+#removing all numbers and brackets
+fruity_comma <- gsub('" ', '",', fruity2)
+#add commas in between quotes
+fruity_comma1 <- gsub('"', '', fruity_comma)
+#remove the quotes
+print(fruity_comma1)
+#check quotes were removed
+fruity_list <- as.list(str_split(fruity_comma1,",")[[1]])
+#split the string so it fits into a list
+fruity_list2 <- trimws(fruity_list)
+#remove the blank spaces in the beginning and end of strings
+print(fruity_list2)
+#check list
+
+attempt1 <- fruity_list2
+#does the list match the answer?
+attempt1 == answer
+#list successfully matches answer
+
+#assuming the data was in a dataframe
+fruity1 <- data.frame("bell pepper", "bilberry", "blackberry", "blood orange", "blueberry", "cantaloupe", "chili pepper", "cloudberry", "elderberry", "lime", "lychee", "mulberry", "olive", "salal berry")  
+
+
+
+fruitys <- c(t(fruity1))
+#Converting dataframe into vector/list.
+#read the dataframe into a list row by row
+attempt2 <- fruitys
+#renaming list to attempt2
+print(attempt2)
+
+attempt2 == answer
+#list successfully matches answer
+```
+<header>Question 3:</header>
+Describe, in words, what these expressions will match:
+(.)\1\1 
+<br>
+this would be rewritten as (.)(.)(.) where (.)=(.)=(.) it will check for any character as denoted by "." it will return parts of a string with three repeating characters "aaa", "111" etc. 
+<br>
+"(.)(.)\\2\\1"
+<br>
+returns parts of a string that has this pattern  (1char)(2char)(2char)(1char) like "abba"
+<br>
+(..)\1
+<br>
+returns any two characters that repeat together (char1char2)(char1char2) like "toto" or "1111"
+<br>
+"(.).\\1.\\1"
+<br>
+returns three of the same character with any character in between each of the same characters or char1 anycharacter char1 anycharacter char1 like "c1chc"
+<br>
+"(.)(.)(.).*\\3\\2\\1"
+<br>
+returns any three characters followed by any length string of characters followed by the same initial three characters in reverse order char1 char2 char3 anycharacters char3 char2 char1 such as "123abcde321"
+
+```{r testing regex}
+
+randomstr <- c("aaa", "a111b","fjdkfjd","ckkc","ckck","abeethcba", "abbae1221", "tttt1t1t1", "b3b6b567", "abb222bba222", "abc123456cba")
+#strings to test the regex expressions on
+x <-  str_view(randomstr, '(.)\\1\\1')
+print('(.)\\1\\1')
+print(x)
+#examples of the first expression
+x1 <- str_view(randomstr, "(.)(.)\\2\\1") 
+print("(.)(.)\\2\\1")
+print(x1)
+#examples of the second expression
+x2 <- str_view(randomstr, "(..)\\1") 
+print("(..)\\1")
+print(x2)
+#examples of the third expression
+x3 <- str_view(randomstr, "(.).\\1.\\1") 
+print("(.).\\1.\\1")
+print(x3)
+#examples of the fourth expression
+x4 <- str_view(randomstr, "(.)(.)(.).*\\3\\2\\1") 
+print("(.)(.)(.).*\\3\\2\\1")
+print(x4)
+#examples of the fifth expression
+
+```
+<header>Question 4:</header>
+ Construct regular expressions to match words that:
+<br>
+Start and end with the same character.
+<br>
+"^(.).*//1$" returns strings that start and end with the same character.
+<br>
+
+Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+<br>
+"(.*)(\\w)(\\w).*\\2\\3.*" returns a string of any length that contains repeating pair of letters
+<br>
+
+Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+<br>
+"(.*)(\\w).*\\2.*\\2.*" Returns a string of any length that contains three repeated characters anywhere in the word.
+<br>
+
+```{r testing regex expressions Q4}
+
+randomstr <- c("aaa", "a111b","fjdkfjd","ckkc","ckck","abeethcba", "abbae1221", "tttt1t1t1", "b3b6b567", "abb222bba222", "abc123456cba", "church","eleven","beeen")
+#strings to test the regex expressions
+x5 <-  str_view(randomstr, "^(.).*\\1$")
+print("^(.).*\\1$")
+print(x5)
+x6 <- str_view(randomstr, "(.*)(\\w)(\\w).*\\2\\3.*") 
+print("(.*)(\\w)(\\w).*\\2\\3.*")
+print(x6)
+
+x7 <- str_view(randomstr, "(.*)(\\w).*\\2.*\\2.*") 
+print("(.*)(\\w).*\\2.*\\2.*")
+print(x7)
+
+
+```
+<b><header>Conclusion:</header></b>
+Answered questions pertaining to selecting segments from strings.
