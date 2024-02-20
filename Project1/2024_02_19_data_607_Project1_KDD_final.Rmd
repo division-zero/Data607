@@ -1,0 +1,177 @@
+---
+title: "Data 607 Project 1"
+author: "Keith DeNivo"
+date: "2024-02-18"
+output: html_document
+---
+http://rpubs.com/divide_by_zero/1151094
+<b><header>Loading Libraries:</header></b><br>
+```{r library}
+library(devtools)
+library(RCurl)
+library(plyr)
+library(dplyr)
+library(tidyverse)
+library(DescTools)
+library(ggpubr)
+library(openintro)
+library (readr)
+library(rvest)
+```
+<b><header>Introduction:</header></b><br>
+
+Chess Tournament results txt file was downloaded and put into github.  The data was then scrapped from github. States and player pre ratings were extracted from the text file and stored into a data frame.  A matrix that stored the opponent pre ratings was constructed, then the average pre rating (of a player's opponents) was calculated and stored into a data frame. For the final data frame for csv construction contains: Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents.
+```{r text file}
+
+
+c <- getURL("https://bbhosted.cuny.edu/bbcswebdav/pid-81630190-dt-content-rid-636011541_1/xid-636011541_1")
+#original URL does not seem to work.
+
+
+#downloading from blackboard is ill advised due to having the need to be signed in
+
+c <- getURL("https://raw.githubusercontent.com/division-zero/Data607/main/Project1/7645617.txt")
+#moved txt file to github where it would be publicly accessible. 
+
+view(c)
+
+c1 <- str_replace_all(c,"[|]",",")
+c2 <- str_replace_all(c1,"[-]","")
+#attempt to convert the string into a readable format by replacing "|" into "," removing "-"
+glimpse(c2)
+#the text file is now similar to a csv
+```
+<b><header>txt file:</header></b><br>
+The text file was converted into a readable format.
+
+```{r constructing dataframe}
+df_attempt2 <- data.frame(read.csv(text = c2))
+#reading this as a csv put the data into a data frame.
+glimpse(df_attempt2)
+```
+<b><header>data frame:</header></b><br>
+A data frame was constructed from the text file that contained all the data. The data could now be manipulated and cleaned.
+```{r extract from dataframe}
+newdf3 <- slice(df_attempt2, seq(1, nrow(df_attempt2), 2))
+#select every other row with the scores
+newdf4 <- slice(df_attempt2, seq(2, nrow(df_attempt2), 2))
+#select every other row with the people
+glimpse(newdf3)
+glimpse(newdf4)
+newdf5 <- cbind(newdf3[2:nrow(newdf3),1:2],newdf4)
+#combine the scores and the people excluding any unnecessary columns.
+newdf6 <-  subset(newdf5, select = -c(X) ) 
+#subtract the column that only contains "NA"
+newdf7 <- newdf6 %>% 
+       rename(State = 1, Player.Score = 2, Player.Number = 3, Player.Names = 4)
+#rename the columns for clarity
+
+list1 <- lapply(newdf7[,2], function(x) str_extract(x, "R:( )*[0-9]*"))
+# extract all the pre scores/ratings with R:
+
+list2 <- lapply(list1, function(x) gsub("[^0-9]+", "",list1))
+#extract all the pre scores with "R:" removed
+
+newdf8 <- data.frame(list2)
+#convert list to data frame
+
+scoredf <- data.frame(newdf8[,1])
+# remove extra columns in score data frame
+
+newdf9 <- cbind(newdf7,scoredf)
+#combine the pre ratings back into the dataframe with the other formatting removed
+newdf10 <- newdf9 %>% 
+       rename(Pre.Scores = 13)
+# renamed the pre rating to pre scores
+glimpse(newdf10)
+view(newdf10[,6:12])
+```
+<b><header>Pre Rating:</header></b><br>
+The pre rating were extracted for each player and put into a new column.
+```{r average pre rating}
+roundsdf <- data.frame(lapply(newdf10[,6:12], function(x) str_extract(x, "[0-9]+")))
+#extract the person number each person played in rounds
+
+newdf11 <- add_column(newdf10,roundsdf)
+#combine the columns of the person number played and the dataframe
+newdf12 <- newdf11[ -c(1,6:12) ]
+#remove the extra round columns
+newdf13 <- newdf12 %>% 
+       rename(Round = 6, Round.1 = 7, Round.2 = 8, Round.3 = 9, Round.4 = 10, Round.5 = 11, Round.6 = 12)
+#put the opponent player numbers into a dataframe.
+matrixdf <- matrix(ncol = 12, nrow = 64)
+for(a in 1:64){
+for(i in 6:12){
+g <- newdf13[a,i]
+h <- scoredf[g,1]
+newdf14 <- data.frame(matrixdf[a,i] <- h)
+}
+}
+#go through  extract the player's pre rating for each player number that each player played. Store it in a matrix in positions corresponding to the player and the round. each row will have the opponent pre rating score.
+as.numeric(matrixdf)
+glimpse(matrixdf)
+newdf14 <- data.frame(matrixdf)
+#convert matrix into a data frame
+newdf14$X6 <- as.integer(newdf14$X6)
+newdf14$X7 <- as.integer(newdf14$X7)
+newdf14$X8 <- as.integer(newdf14$X8)
+newdf14$X9 <- as.integer(newdf14$X9)
+newdf14$X10 <- as.integer(newdf14$X10)
+newdf14$X11 <- as.integer(newdf14$X11)
+newdf14$X12 <- as.integer(newdf14$X12)
+#converting the relevant columns of data frame containing players pre ratings into numbers
+newdf15 = subset(newdf14, select = -c(1:5) )
+glimpse(newdf15)
+#remove any extra columns that contain no values.
+sapply(newdf15, class)
+#check that the relevant columns were converted into integers.
+list3 <- c(rowMeans(newdf15, na.rm=T))
+averagerounddf <- data.frame(list3)
+
+# calculate the average pre rating for each row (player). Store it in a dataframe.
+list4 <- c(rowSums(newdf15, na.rm=T))
+#sum the pre ratings for each row (player)
+totalpreratingdf <- data.frame(list4)
+#put the total pre rating into a dataframe
+newdf16 <- cbind(newdf13,averagerounddf,totalpreratingdf)
+#combine the data into a single dataframe including the average player pre rating
+glimpse(newdf16)
+newdf17 <- newdf16 %>% 
+       rename(average_opponent_score = 13, total_pre_rating = 14)
+#rename the average pre rating and total pre rating columns
+```
+
+<b><header>Opponent's average Pre Rating:</header></b><br>
+The average pre rating for each player's opponents was calculated and stored into a data frame
+
+
+```{r finalize dataframe}
+newdf18 <- newdf17[ -c(1,6:12) ]
+#remove the round columns accidentally removed the states
+newdf19 <- newdf18[ -c(1,14) ]
+#removed the player numbers since it was not required also the total pre ratings were meant to be removed but there was a typo
+statedf <- data.frame(newdf11[,1])
+#putting the states into a dataframe to be added back
+newdf20 <- cbind(newdf19,statedf)
+#added states back into main dataframe
+newdf21 <- newdf20 |> rename(States = 6)
+#rename the states column back into states
+newdf21$average_opponent_score <- as.integer(newdf21$average_opponent_score)
+#convert the average opponent rating  into an integer to match the assignment output "1605"
+newdf22 <- newdf21[, c(1, 6, 2, 3, 4)]
+#reordering the columns to the order provided in the assignment: Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents
+newdf22$Pre.Scores <- as.integer(newdf22$Pre.Scores)
+#insuring the pre scores are of an integer data type to potentially avoid issues.
+finaldf <- newdf22 |> rename("Player’s Name" = 1, "Player’s State" = 2, "Total Number of Points" = 3, "Player’s Pre-Rating" = 4,  "Average Pre Chess Rating of Opponents" = 5)
+#rename the columns to the same names as provided in the assignment
+view(finaldf)
+```
+<b><header>Data frame format:</header></b><br>
+The dataframe was reformatted to match the assignment.
+```{r write csv}
+write.csv(finaldf)
+#write a csv for the final dataframe.
+
+```
+<b><header>Conclusion:</header></b><br>
+The data frame successfully contains the assignments parameters and a csv can be written for upload to a database.
