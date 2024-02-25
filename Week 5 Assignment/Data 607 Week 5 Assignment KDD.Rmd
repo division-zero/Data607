@@ -88,7 +88,7 @@ print('Average delay % across all flights for ALASKA')
 print(ALASKA_delay_percent)
 print('Average delay % across all flights for AM WEST')
 print(AM_W_delay_percent)
-
+ggplot( data = airline_info_df_analysis, aes(x = Airline,y = `%_delays`)) + geom_boxplot()  
 write.csv(airline_info_df, 'tidy_airline.csv')
 ```
 <b><header>Conclusion:</header></b><br>
