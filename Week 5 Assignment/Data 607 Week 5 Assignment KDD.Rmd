@@ -1,0 +1,95 @@
+---
+title: "Data 607 Week 5 Assignment"
+author: "Keith DeNivo"
+date: "2024-02-24"
+output: html_document
+---
+<b><header>Introduction:</header></b><br>
+https://rpubs.com/divide_by_zero/1153055
+A CSV was created to match the picture in the assignment using excel.  The file was then put into github.  The csv was scraped using R and put into a data frame.  The data frame was put into a tidy format.  Some basic information on the delays between the two airlines was conducted.
+```{r Library}
+library(dplyr)
+library(RCurl)
+library(tidyr)
+library(tidyverse)
+library(reshape2)
+```
+Libraries Loaded
+``` {r csv scrape}
+c <- getURL("https://raw.githubusercontent.com/division-zero/Data607/main/Week%205%20Assignment/airline.csv")
+#read in the raw file
+airline_info_df <- data.frame(read.csv(text = c ))
+#put the csv into a dataframe
+head(airline_info_df)
+```
+CSV from github was scraped.
+
+```{r rename and format}
+
+airline_info_df[2,1] <- "ALASKA"
+airline_info_df[5,1] <- "AM WEST"
+#add airlines to their corresponding rows
+airline_info_df <- airline_info_df[-c(3), ]
+#remove blank row
+head(airline_info_df)
+
+```
+<b><header>Fixing original dataframe:</header></b><br>
+The missing information was added to the dataframe.  There were two rows that did not mention which airline the data was for.  The blank row was deleted.
+```{r arrange}
+airline_info_df <- airline_info_df |> rename(Airline = 1, Time = 2)
+# rename the columns to something useful
+airline_info_df <- airline_info_df |> pivot_longer(Los.Angeles:Seattle, values_to = "frequency", values_drop_na = TRUE)
+#pivot the data to a long format by destination.  The number of flights were put into "frequency"
+airline_info_df <- airline_info_df |> rename(Destination = 3)
+#column was renamed to destination
+head(airline_info_df)
+
+```
+<b><header>Pivot by destination:</header></b><br>
+Data was converted into a long format using pivot by destination.
+```{r rearrange}
+
+head(airline_info_df)
+
+airline_info_df <- pivot_wider(airline_info_df, 
+                          names_from = Time, 
+                          values_from = frequency)
+# in order to make the data more in line with a tidy format the on time and delay flights were converted into columns
+head(airline_info_df)
+```
+<b><header>Pivot for each observation:</header></b><br>
+Data was pivoted again to include the on time flight and delay flights numbers for each airline and destination. This is the data frame that was written as a csv at the end.
+
+```{r analysis}
+
+
+airline_info_df_analysis <- mutate(airline_info_df, '%_delays' = airline_info_df$delayed / (airline_info_df$`on time`+airline_info_df$delayed) *100 )
+airline_info_df_analysis %>% tbl_df %>% print(n=Inf)
+#what percent of flights are delayed for each destination?
+alaska_only_df <- airline_info_df_analysis |> 
+  filter(Airline == 'ALASKA') 
+#df with only Alaska airline in it
+mean(alaska_only_df$`%_delays`)
+#what is the average percent delay for Alaska?
+am_west_only_df <- airline_info_df_analysis |> 
+  filter(Airline == 'AM WEST')
+#df with only AM WEST info
+mean(am_west_only_df$`%_delays`)
+#what is the average percent delay for AM WEST?
+AM_W_On_time_total <- sum(am_west_only_df$`on time`)
+AM_W_delayed_total <- sum(am_west_only_df$delayed)
+ALASKA_On_time_total <- sum(alaska_only_df$`on time`)
+ALASKA_delayed_total <- sum(alaska_only_df$delayed)
+AM_W_delay_percent <- AM_W_delayed_total/(AM_W_delayed_total+AM_W_On_time_total)*100
+ALASKA_delay_percent <- ALASKA_delayed_total/(ALASKA_delayed_total+ALASKA_On_time_total)*100
+#computing the average percent delay adding all flight together for each airline.
+print('Average delay % across all flights for ALASKA')
+print(ALASKA_delay_percent)
+print('Average delay % across all flights for AM WEST')
+print(AM_W_delay_percent)
+
+write.csv(airline_info_df, 'tidy_airline.csv')
+```
+<b><header>Conclusion:</header></b><br>
+Alaska has smaller percentage of delays to each destination.  AM West has a smaller percentage of delays overall for all flights ignoring destination.  This discrepancy is explained by the fact that AM west has the most flights to Phoenix, which has a low % delay. airline_info_df_analysis shows the percent delay for each destination for each airline.
