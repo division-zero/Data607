@@ -1,0 +1,487 @@
+---
+title: "Data 607 Project 2"
+author: "Adriana Medina & Keith DeNivo"
+date: "2024-02-26"
+output: html_document
+---
+<b><header>Project 2 section 1 by Keith DeNivo</header></b>
+<b><header>Introduction:</header></b>
+The data set for this section included population estimates based on census data as well as immigration and deaths for the United States.  The data set contained population estimates from April to September of 1990 for each sex, race, and age.  
+The data set was a text file with each character in the file contained information on the population.  The position of each character defined what the data represented.  Each line had 222 characters. The positions of each character of each line is listed below. 
+
+1-2 Character Series
+3-4 Numeric Month
+5-8 Numeric Year
+9-11 Numeric Age (years)
+12 (blank) (blank)
+13-22 Numeric Total population
+23-32 Numeric Total male population
+33-42 Numeric Total female population
+43-52 Numeric White male population
+53-62 Numeric White female population
+63-72 Numeric Black male population
+73-82 Numeric Black female population
+83-92 Numeric American Indian, Eskimo, and Aleut male population
+93-102 Numeric American Indian, Eskimo, and Aleut female population
+103-112 Numeric Asian and Pacific Islander male population
+113-122 Numeric Asian and Pacific Islander female population
+123-132 Numeric Hispanic male population
+133-142 Numeric Hispanic female population
+143-152 Numeric White, non-Hispanic male population
+153-162 Numeric White, non-Hispanic female population
+163-172 Numeric Black, non-Hispanic male population
+173-182 Numeric Black, non-Hispanic female population
+183-192 Numeric American Indian, Eskimo, and Aleut, non-Hispanic male population
+193-202 Numeric American Indian, Eskimo, and Aleut, non-Hispanic female population
+203-212 Numeric Asian and Pacific Islander, non- Hispanic male population
+213-222 Numeric Asian and Pacific Islander, non- Hispanic female population
+
+First the data was read into a data frame. The data was made more tidy by making each observation include sex and race. some basic analysis was included.
+```{r Library}
+library(dplyr)
+library(RCurl)
+library(tidyr)
+library(tidyverse)
+library(reshape2)
+```
+<header>Libraries:</header></b>
+Relevant libraries were loaded.
+
+```{r first file}
+
+aprsep1990df <- read.table(
+  "https://www2.census.gov/programs-surveys/popest/datasets/1990-2000/national/asrh/e9090rmp.txt",
+  sep="\t", header=FALSE)
+charseries <- data.frame(substr(aprsep1990df[,1], 1,2))
+month <- data.frame(substr(aprsep1990df[,1], 3,4))
+year <- data.frame(substr(aprsep1990df[,1], 5,8))
+age <- data.frame(substr(aprsep1990df[,1], 9,11))
+totpop <- data.frame(substr(aprsep1990df[,1], 13,22))
+totmalepop <- data.frame(substr(aprsep1990df[,1], 23,32))
+totfemalepop <- data.frame(substr(aprsep1990df[,1], 33,42))
+whtmalepop <- data.frame(substr(aprsep1990df[,1], 43,52))
+whtfemalepop <- data.frame(substr(aprsep1990df[,1], 53,62))
+blkmalepop <- data.frame(substr(aprsep1990df[,1], 63,72))
+blkfemalepop <- data.frame(substr(aprsep1990df[,1], 73,82))
+nativemalepop <- data.frame(substr(aprsep1990df[,1], 83,92))
+nativefemalepop <- data.frame(substr(aprsep1990df[,1], 93,102))  
+asianmalepop <- data.frame(substr(aprsep1990df[,1], 103,112))
+asianfemalepop <- data.frame(substr(aprsep1990df[,1], 113,122))
+hismalepop <- data.frame(substr(aprsep1990df[,1], 123,132))
+hisfemalepop <- data.frame(substr(aprsep1990df[,1], 133,142))
+whtnonhismalepop <- data.frame(substr(aprsep1990df[,1], 143,152))
+whtnonhisfemalepop <- data.frame(substr(aprsep1990df[,1], 153,162))
+blknonhismalepop <- data.frame(substr(aprsep1990df[,1], 163,172))
+blknonhisfemalepop <- data.frame(substr(aprsep1990df[,1], 173,182))
+nativenonhismalepop <- data.frame(substr(aprsep1990df[,1], 183,192))
+nativenonhisfemalepop <- data.frame(substr(aprsep1990df[,1], 193,202))
+asiannonhismalepop <- data.frame(substr(aprsep1990df[,1], 203,212))
+asiannonhisfemalepop <- data.frame(substr(aprsep1990df[,1], 213,222))
+#put each population or time info into a dataframe
+aprsep1990df <- cbind(charseries,month,year,age, totpop,totmalepop,totfemalepop,whtmalepop,whtfemalepop,blkmalepop,blkfemalepop,nativemalepop,nativefemalepop,asianmalepop,asianfemalepop,hismalepop,hisfemalepop,whtnonhismalepop,whtnonhisfemalepop,blknonhismalepop,blknonhisfemalepop,nativenonhismalepop,nativenonhisfemalepop,asiannonhismalepop,asiannonhisfemalepop)
+#combine all the data frames into a single data frame
+colnames(aprsep1990df) <- c("character_series","month","year","age","all_both_population","all_male_population","all_female_population","white_male_population","white_female_population","black_male_population","black_female_population","american_indian_eskimo_aleut_male_population","american_indian_eskimo_aleut_female_population","asian_pacific_islander_male_population","asian_pacific_islander_female_population","hispanic_male_population","hispanic_female_population","white_non-hispanic_male_population","white_non-hispanic_female_population","black_non-hispanic_male_population","black_non-hispanic_female_population", "american_indian_eskimo_aleut_non-hispanic_male_population","american_indian_eskimo_aleut_non-hispanic_female_population","asian_pacific_islander_non-hispanic_male_population","asian_pacific_islander_non-hispanic_female_population")
+# change column names of all the columns in the data frame 
+write.csv(aprsep1990df, "aprsep1990.csv")
+#original data frame
+head(aprsep1990df)
+```
+<header>Read in file and convert to data frame:</header></b>
+Data was scrapped.  The information from each line was extracted from the data frame using the substr function and then reorganized and put together into a single data frame.
+```{r tidy}
+
+aprsep1990df <- aprsep1990df %>% 
+  pivot_longer(
+    all_both_population:`asian_pacific_islander_non-hispanic_female_population`, 
+    names_to = "race and gender", 
+    values_to = "population", 
+    values_drop_na = TRUE
+  )
+#pivoted the race and gender columns into a single column.
+   aprsep1990df <- aprsep1990df %>% 
+     mutate(sex = str_match(`race and gender`, "male|female|both"))
+      aprsep1990df <- aprsep1990df %>% 
+     mutate(race = str_match(`race and gender`, "white_non-hispanic|black_non-hispanic|american_indian_eskimo_aleut_non-hispanic|asian_pacific_islander_non-hispanic|all|white|black|american_indian_eskimo_aleut|asian_pacific_islander|hispanic"))
+    #the gender was extracted and put into it's own column "sex"  
+  tidy1990df <- aprsep1990df[ -c(1,5) ]
+  #removed the character series since it contained no relevant information.  removed the race and gender column, since race and sex was put into their own columns.
+  tidy1990df <- tidy1990df[, c(1, 2, 3, 5, 6, 4)]
+  #reordered the columns.
+write.csv(tidy1990df, "tidy1990.csv")
+#tidy data
+names(tidy1990df)
+tidy1990df[, 1] <- sapply(tidy1990df[, 1], as.integer)
+tidy1990df[, 6] <- sapply(tidy1990df[, 6], as.integer)
+#population and month were converted from characters into numbers.
+head(tidy1990df)
+summary(tidy1990df)
+```
+<header>Tidy:</header></b>
+Initially, there were columns containing the sex, race, and gender of each combination and the population of each (e.g. white male population).  Those column names were put into their own column and their populations were put in a column called population.  The gender/sex and race were separated into two columns.  
+```{r analysis male female}
+tidy1990df |> filter( age == "999" & sex != "both" & race == "all") |> 
+  ggplot(aes(x=month, y=population, fill = sex, color= sex, group = sex))+
+  geom_point() +
+  labs(title = "All Populations")
+all_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "all")
+all_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "all")
+male_model <- lm(population ~ month, data = all_male_pop)
+female_model <- lm(population ~ month, data = all_female_pop)
+summary(tidy1990df)
+summary(male_model)
+coef(male_model)
+summary(female_model)
+coef(female_model)
+```
+<header>Looking at males and females of all races combined:</header></b>
+Interestingly, overall there are more females than males from April 1990 to September 1990.  The slope of the female population is greater than the male's. The overall number of females was larger and grew faster during this time period.
+
+```{r analysis male race}
+tidy1990df |> filter( age == "999" & sex == "male"& race != "all") |> 
+  ggplot(aes(x=month, y=population, fill = race, color= race, group = race))+
+  geom_line() +
+  labs(title = "Male Populations")
+white_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "white")
+black_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "black")
+hispanic_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "hispanic")
+asian_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "asian_pacific_islander")
+native_male_pop <- tidy1990df |> filter( age == "999" & sex == "male" & race == "american_indian_eskimo_aleut")
+
+white_male_model <- lm(population ~ month, data = white_male_pop)
+black_male_model <- lm(population ~ month, data = black_male_pop)
+hispanic_male_model <- lm(population ~ month, data = hispanic_male_pop)
+asian_male_model <- lm(population ~ month, data = asian_male_pop)
+native_male_model <- lm(population ~ month, data = native_male_pop)
+summary(white_male_model)
+coef(white_male_model)
+summary(black_male_model)
+coef(black_male_model)
+summary(hispanic_male_model)
+coef(hispanic_male_model)
+summary(asian_male_model)
+coef(asian_male_model)
+summary(native_male_model)
+coef(native_male_model)
+```
+<header>Male information:</header></b>
+The intercept of these lines give us an estimate of the population size in the beginning of 1990.  The slopes show the population growth per month. Looking at the males of each race:
+white male: slope: 80492, intercept: 101836918, black male: slope: 19882, intercept: 14357658, hispanic male: slope: 32689, intercept: 11269201, asian or pacific islander male: slope: 15167, intercept: 3595812, american indian or eskimo or aleut male: slope: 1503, intercept: 1018680
+```{r analysis female race}
+tidy1990df |> filter( age == "999" & sex == "female" & race != "all") |> 
+  ggplot(aes(x=month, y=population, fill = race, color= race, group = race))+
+  geom_line() +
+  labs(title = "Female Populations")
+white_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "white")
+black_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "black")
+hispanic_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "hispanic")
+asian_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "asian_pacific_islander")
+native_female_pop <- tidy1990df |> filter( age == "999" & sex == "female" & race == "american_indian_eskimo_aleut")
+
+white_female_model <- lm(population ~ month, data = white_female_pop)
+black_female_model <- lm(population ~ month, data = black_female_pop)
+hispanic_female_model <- lm(population ~ month, data = hispanic_female_pop)
+asian_female_model <- lm(population ~ month, data = asian_female_pop)
+native_female_model <- lm(population ~ month, data = native_female_pop)
+summary(white_female_model)
+coef(white_female_model)
+summary(black_female_model)
+coef(black_female_model)
+summary(hispanic_female_model)
+coef(hispanic_female_model)
+summary(asian_female_model)
+coef(asian_female_model)
+summary(native_female_model)
+coef(native_female_model)
+```
+<header>Female information:</header></b>
+The intercept of these lines give us an estimate of the population size in the beginning of 1990.  The slopes show the population growth per month. Looking at the females of each race:
+
+white female: slope: 78122, intercept: 106257622, black female: slope: 21361, intercept: 15988772, hispanic female: slope: 33634, intercept: 10840518, asian or pacific islander female: slope: 17223, intercept: 3739941, american indian or eskimo or aleut female: slope: 1590, intercept: 1035231
+
+White males were increasing faster than white females, white females had a higher overall population. Black females were greater in number and are increased faster than black males.  There are more hispanic males than females, but hispanic females' population grew slightly faster. Asian females were also more numerous and population was growing more than asian males. For native americans there were slightly more females and female population grew slightly faster.  
+
+```{r analysis age september}
+tidy1990df |> filter( month == "9" & sex == "both" & race == "all" & age != "999") |> 
+  ggplot(aes(x=age, y=population))+
+  geom_col()
+population_age <- tidy1990df |> filter( month == "9" & sex == "both" & race == "all" & age != "999")
+population_age$age[which.max(population_age$population)]
+```
+<header>Age:</header></b>
+Questions involving age may also be answered.  The age with the greatest population is 30 for everyone in September 1990.
+
+
+<header>Conclusion:</header></b>
+Data presented was read into a data frame and then made more tidy by pivoting the sex and race of the populations.  With some filtering the data can be analyzed. The populations of males overall were less and growing less than females.  The age with the greatest population is 30 for September 1990.
+
+<br>
+<b>Project 2 simple data / section 2:</b><br>
+author: Keith DeNivo, Adriana Medina<br>
+date: 2024-03-02
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+<b><header>Introduction:</header></b>
+
+Untidy/wide data set was sourced by this PDF:
+"https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjQ3b6x-cyEAxUWlYkEHbQwBPoQFnoECA0QAQ&url=https%3A%2F%2Fcommunity.esri.com%2Fccqpr47374%2Fattachments%2Fccqpr47374%2Farcgis-insights-questions%2F976%2F1%2FData%2520Reshaping%2520Doc%2520Formatted.pdf&usg=AOvVaw1rmDMqBCK-e4Nze3fx4Tgm&opi=89978449"
+It is a pdf that contains a lesson of what is long and what is wide data.  The particular dataset is used is for select states and their population for each year from 2015 to 2020. CSV is posted by Natalie Kalukeerthie. Tidying done by Keith DeNivo.  Analysis by Adriana Medina.
+
+```{r Libraries}
+library(dplyr)
+library(RCurl)
+library(tidyr)
+library(tidyverse)
+```
+<b><header>Libraries:</header></b>
+Loaded relevant Libraries:  tidyr and dplyr.
+
+```{r Read in}
+
+c <- getURL("https://raw.githubusercontent.com/nk014914/Data-607/main/Population_data.csv")
+#read in the raw file
+popdata_df <- data.frame(read.csv(text = c ))
+#convert file to data frame popdata_df
+head(popdata_df)
+```
+<b><header>Data Scrape:</header></b>
+csv was converted into a data frame.
+
+```{r clean}
+popdata_df <- popdata_df[-c(3), ]
+#remove blank row
+head(popdata_df)
+names(popdata_df)
+```
+
+<b><header>"Cleaning:</header></b>
+blank row containing no values was removed.
+```{r tidy pop}
+popdatatidy <-  popdata_df |> pivot_longer(
+    X2015.Population:X2020.Population, 
+    names_to = "year", 
+    values_to = "population", 
+    values_drop_na = TRUE)
+#population for each year columns 2015 to 2020 were pivoted into a single column called "year".  Their values was assigned to population.
+```
+<b><header>Tidying:</header></b>
+Names of the columns containing the population for a given year were pivoted into a single column called "year", so that the year could be extracted.  Their values was assigned to population, so that all populations are in a single column.
+```{r fix year}
+popdatatidy_df <- popdatatidy %>% 
+     mutate(year = str_match(year, "[0-9]+"))
+  head(popdatatidy_df)    
+    #extracted the digits for year in the column year
+```
+
+<b><header>Remove extra characters from column names:</header></b>
+There were extra characters in the Name column : "ï..Name" 
+```{r}
+# Remove extra characters from column names
+colnames(popdatatidy_df) <- gsub("ï..", "", colnames(popdatatidy_df))
+
+print(colnames(popdatatidy_df))
+head(popdatatidy_df)
+```
+<b><header>Regex Year:</header></b>
+Using Regex the year was extracted for the strings containing the year and "population" from column year.
+```{r sort}
+
+popdatatidy_df <- popdatatidy_df[order(popdatatidy_df$year,popdatatidy_df$Name),]
+head(popdatatidy_df)
+#decided to sort by ascending time and keeping states alphabetical order.
+```
+<b><header>Sort:</header></b>
+Data can be sorted as desired. Data was sorted by the year, then alphabetically by state.
+
+
+```{r rename and data type}
+colnames(popdatatidy_df)[1] <- "State"
+#rename the name column containing the names of states to state
+popdatatidy_df[, 4] <- sapply(popdatatidy_df[, 4], as.integer)
+#converted the year to an integer from character.
+head(popdatatidy_df)
+write.csv(popdatatidy_df, "census1990.csv")
+```
+<b><header>Formatting:</header></b>
+Year was converted into an integer for potential numeric calculations. Name column was changed to state. csv of the tidy data was written
+
+<b><header>Analysis:</header></b>
+
+Our aim is to analyze population data for each state across a six-year period to uncover underlying patterns and trends. Furthermore, we seek to find the year that exhibits the largest population growth.
+
+For the first part of the analysis I wanted to arrange the data by state and year, then group the data by state. For this I am using the group_by function from dplyr. This line of code computes the population growth (or decline) by subtracting the lagged population values from the current population values.
+
+This will result in a N/A value for the year 2015 for each state because there is no prior data to that year. 
+
+```{r calc-pop-growth}
+#calc pop growth compared to the previous year
+popdatatidy_df <- popdatatidy_df %>%
+  arrange(State, year) %>%
+  group_by(State) %>%
+  mutate(population_growth = population - lag(population))
+
+ggplot(popdatatidy_df, aes(x = year, y = population_growth)) +
+  geom_bar(stat = "identity", fill = "pink", na.rm = TRUE) +
+  labs(title = "Population Growth Over 6 Years",
+       x = "Year",
+       y = "Population Growth") +
+  theme_minimal()
+
+```
+
+Based on the bar graph above, it is evident that 2019 is the year that has the largest population growth.
+
+<b><header>One could also use dplyr functions to calculate the total population growth for each year, and identify the year with the maximum population growth</header></b>
+
+
+```{r max growth year}
+max_growth_year <- popdatatidy_df %>%
+  group_by(year) %>%
+  summarise(total_population_growth = sum(population_growth, na.rm = TRUE)) %>%
+  slice(which.max(total_population_growth)) %>%
+  pull(year)
+
+print(max_growth_year)
+```
+
+<b><header>Project 2 section 3 by Adriana Medina</header></b>
+
+<b><header>Introduction:</header></b>
+
+This is a dataset that I've chosen from the Harvard Dataverse containing a list of awarded noble prizes and metadata about the winners.
+
+https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HYRJDX
+
+<b><header>Load Libraries:</header></b>
+```{r libraries2}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+<b><header>Read in data:</header></b>
+```{r Read in 2}
+raw_data_path<-("https://raw.githubusercontent.com/amedina613/Data-607-Project-2/main/complete.csv")
+
+raw_data <- read.csv(raw_data_path, sep = ",")
+print(colnames(raw_data))
+```
+# Tidy Data
+<b><header>There are multiple columns with the same information, such as "residence_1", and "residence_2." In an effort to tidy data, let's concatenate the info:</header></b>
+
+```{r concatenate residence}
+raw_data <- raw_data %>%
+  mutate(residence = coalesce(residence_1, residence_2)) %>%
+  select(-c(residence_1, residence_2))
+```
+
+<b><header>Concatenate affiliation columns into one column to tidy up the data:</header></b>
+
+```{r concatenate affiliation}
+raw_data <- raw_data %>%
+  mutate(affiliation = coalesce(affiliation_1, affiliation_2, affiliation_3, affiliation_4)) %>%
+  select(-c(affiliation_1, affiliation_2, affiliation_3, affiliation_4))
+write.csv(raw_data, "tidynoble.csv")
+```
+This is quite a wide data set and these are just some examples of what you can do 
+
+# Tidy data for analysis
+<b><header>Split up the data into two separate tables: Awards (awardYear, category, prizeAmount) and Recipients (name, birth_date, gender):</header></b>
+
+```{r recipients gender}
+awards <- na.omit(subset(raw_data, select = c("awardYear", "category", "prizeAmount")))
+
+recipients <- na.omit(subset(raw_data, select = c("name", "birth_date", "gender")))
+```
+
+<b><header>Some of the recipients are organizations. Filter those out for the sake of the gender analysis using dplyr's filter function</header></b>
+
+```{r genderless}
+recipients_without_gender <- recipients %>%
+  filter(is.na(gender) | gender == "")
+
+recipients <- recipients %>%
+  filter(!is.na(gender), gender != "")
+```
+
+I made a df for the recipients without gender to make sure everything checks out. It does, 950-27 is 923, which is the number of obs. in the filtered final df.
+
+
+# What proportion of the awards are given to women vs men? How has this changed over time?
+
+<b><header>Create a data frame of gender data:</header></b>
+
+```{r count gender}
+gender_counts <- table(recipients$gender)
+
+proportion_women <- gender_counts["female"] / sum(gender_counts)
+proportion_men <- gender_counts["male"] / sum(gender_counts)
+
+gender_data <- data.frame(
+  Gender = c("Female", "Male"),
+  Proportion = c(proportion_women, proportion_men)
+)
+```
+
+<b><header>Plot the data:</header></b>
+
+```{r plot gender}
+ggplot(gender_data, aes(x = Gender, y = Proportion, fill = Gender)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Proportion of Awards by Gender",
+       x = "Gender",
+       y = "Proportion") +
+  scale_fill_manual(values = c("Female" = "blue", "Male" = "red")) +
+  theme_minimal()
+```
+
+# Which field has received the largest prize amount? Which field has received the lowest?
+<b><header>Group by field and calculate the total prize amount for each field:</header></b>
+
+```{r prize}
+field_prize_sum <- awards %>%
+  group_by(category) %>%
+  summarise(total_prize_amount = sum(prizeAmount, na.rm = TRUE))
+```
+
+<b><header>Print the min and max prize:</header></b>
+
+```{r prize amounts}
+max_prize_field <- field_prize_sum %>%
+  filter(total_prize_amount == max(total_prize_amount))
+
+min_prize_field <- field_prize_sum %>%
+  filter(total_prize_amount == min(total_prize_amount))
+
+
+print("Field with the largest prize amount:")
+print(max_prize_field)
+
+print("Field with the lowest prize amount:")
+print(min_prize_field)
+```
+
+# How have the number of awards given out each year changed over time? 
+
+I attempted to make a bar plot to visualize the number of awards given out each year for each award type, however there was so much information in the plot, it was not decipherable. So I decided to simplify the plot by aggregating by decade.
+
+The floor function was used for this.
+
+```{r summary}
+awards_by_decade_type <- awards %>%
+  group_by(decade = floor(awardYear / 10) * 10, category) %>%
+  summarise(num_awards = n(), .groups = 'drop')
+
+ggplot(awards_by_decade_type, aes(x = as.factor(decade), y = num_awards, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Decade", y = "Number of Awards", fill = "Award Type") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
