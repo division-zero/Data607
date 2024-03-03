@@ -7,6 +7,8 @@ output: html_document
 <b><header>Project 2 section 1 by Keith DeNivo</header></b>
 <b><header>Introduction:</header></b>
 The data set for this section included population estimates based on census data as well as immigration and deaths for the United States.  The data set contained population estimates from April to September of 1990 for each sex, race, and age.  
+"Monthly Postcensal Resident Population, by single year of age, sex, race, and Hispanic origin"
+https://www.census.gov/data/datasets/time-series/demo/popest/1990s-national.html
 The data set was a text file with each character in the file contained information on the population.  The position of each character defined what the data represented.  Each line had 222 characters. The positions of each character of each line is listed below. 
 
 1-2 Character Series
