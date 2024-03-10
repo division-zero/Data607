@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<table>
+  <row>
+    <Title>Modern Physics for Scientists and Engineers</Title>
+    <Authors>Stephen T. Thornton, Andrew Rex, Carol E. Hood</Authors>
+    <Edition>5th</Edition>
+    <ISBN10>1337919454</ISBN10>
+    <Publisher>Cengage Learning</Publisher>
+  </row>
+  <row>
+    <Title>Computational Physics</Title>
+    <Authors>Nicholas Giordano, Hisao Nakanishi</Authors>
+    <Edition>2nd</Edition>
+    <ISBN10>131469908</ISBN10>
+    <Publisher>Pearson</Publisher>
+  </row>
+  <row>
+    <Title>Modern Quantum Mechanics</Title>
+    <Authors>J. J. Sakurai, Jim Napolitano</Authors>
+    <Edition>3rd</Edition>
+    <ISBN10>1108473229</ISBN10>
+    <Publisher>Cambridge University Press</Publisher>
+  </row>
+</table>
