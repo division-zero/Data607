@@ -1,0 +1,125 @@
+---
+title: "Week 7 assignment data 607"
+author: "Keith DeNivo"
+date: "2024-03-10"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+https://rpubs.com/divide_by_zero/1159800
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<header>Introduction:</header>
+a matrix was created of books, then the matrix was saved as three file types xml,json and html.  The files were uploaded onto github.  the files were then read in and converted into dataframes.
+```{r html and libraries}
+library(htmlTable)
+library(magrittr)
+library(jsonlite)
+library(tableHTML)
+library(rjson)
+library(XML)
+library(xml2)
+library(tidyverse)
+library(RCurl)
+library(RJSONIO)
+library(knitr)
+
+# create matrix of books
+bookmatrix <- matrix(c("Modern Physics for Scientists and Engineers", "Computational Physics", "Modern Quantum Mechanics", "Stephen T. Thornton, Andrew Rex, Carol E. Hood", "Nicholas Giordano, Hisao Nakanishi", "J. J. Sakurai, Jim Napolitano","5th", "2nd", "3rd", "1337919454", "131469908", "1108473229", "Cengage Learning", "Pearson", "Cambridge University Press" ),
+       ncol = 5,
+       dimnames = list(c("Book 1", "Book 2","Book 3"),
+                       c("Title", "Authors", "Edition", "ISBN10", "Publisher")))
+
+
+#create an html table 
+
+
+#and to export the html to a file
+write_tableHTML(tableHTML(bookmatrix), file = 'books.html')
+
+```
+<header>data created and html file:</header>
+A matrix was constructed with some information of three books. the data consisted of   title, authors, edition, ISBN10, and publisher.
+```{r json}
+
+
+
+bookdf <- data.frame(bookmatrix)
+#decided to convert the matrix to a dataframe before making it into a json format
+exportJson <- toJSON(bookdf)
+#view(exportJson) check the file is in correct format.
+## Save the JSON to file
+write(exportJson, "books.json")
+#json file created
+#save(exportJson, file="books.json") another potential way of saving a json file
+
+
+
+```
+<header>json file:</header>
+data was stored into a data frame before converting it to a json file.  the file was then saved.
+
+```{r XML}
+
+
+
+# create a new xml doc
+doc_xml <- newXMLDoc(isHTML = FALSE)
+
+# create a table node
+table_node <- newXMLNode("table", doc = doc_xml)
+
+# row data
+row_data <- apply(bookdf, 1, function(x) {
+  z1 <- newXMLNode('row') # create a new node for each row
+  addChildren(z1, lapply(names(x), function(y) newXMLNode(y, x[y])))
+})
+
+# add row data to table node
+xmlParent(row_data) <- table_node
+
+# save as xml file
+saveXML(doc_xml, file = "books.xml")
+
+
+
+```
+<header>xml file:</header>
+The creation of an xml file is significantly more complex than the others in R. nodes have to created for the rows then reapplied tp the declared doc xml.  
+```{r how are their data frames}
+
+
+jsonurl <- getURL("https://raw.githubusercontent.com/division-zero/Data607/main/Week%20%207%20assignment/books.JSON")
+htmlurl <- getURL("https://raw.githubusercontent.com/division-zero/Data607/main/Week%20%207%20assignment/books.html")
+xmlurl <- getURL("https://raw.githubusercontent.com/division-zero/Data607/ce284f604b2abaa58a05c21ab2ec079626c8c677/Week%20%207%20assignment/books.xml", ssl.verifypeer = FALSE)
+
+htmldf <- data.frame(readHTMLTable(htmlurl, as.data.frame = TRUE))
+
+
+
+json_data <- fromJSON(jsonurl)
+
+#output_dataframe <- as.data.frame(sample_data)
+
+
+json_dataframe<- data.frame(matrix(unlist(json_data), 
+ncol = length(json_data), byrow = FALSE), stringsAsFactors = FALSE)
+
+#read_xml(xmlurl)
+xmldoc <- xmlParse(xmlurl)
+xmldf <- xmlToDataFrame(doc = xmldoc)
+
+head(xmldf)
+glimpse(xmldf)
+head(json_dataframe)
+glimpse(json_dataframe)
+head(htmldf)
+glimpse(htmldf)
+
+```
+<header>conclusion/dataframes:</header>
+The data files were loaded into github and then were read in using geturl for each data file.
+The HTML dataframe has an extra column for row names such as "book 1, book 2". The json data frame did not keep the column names. The json file required some work to get it into the correct columns and rows. The xml derived data frame is closest to the originally constructed data frame that was made from the matrix of book data.  With the way each was created and read in they created slightly different dataframes that contain the same information.
+
