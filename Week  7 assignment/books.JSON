@@ -1,1 +1,7 @@
-["Modern Physics for Scientists and Engineers","Computational Physics","Modern Quantum Mechanics","Stephen T. Thornton, Andrew Rex, Carol E. Hood","Nicholas Giordano, Hisao Nakanishi","J. J. Sakurai, Jim Napolitano","5th","2nd","3rd","1337919454","131469908","1108473229","Cengage Learning","Pearson","Cambridge University Press"]
+{
+ "Title": [ "Modern Physics for Scientists and Engineers", "Computational Physics", "Modern Quantum Mechanics" ],
+"Authors": [ "Stephen T. Thornton, Andrew Rex, Carol E. Hood", "Nicholas Giordano, Hisao Nakanishi", "J. J. Sakurai, Jim Napolitano" ],
+"Edition": [ "5th", "2nd", "3rd" ],
+"ISBN10": [ "1337919454", "131469908", "1108473229" ],
+"Publisher": [ "Cengage Learning", "Pearson", "Cambridge University Press" ] 
+}
