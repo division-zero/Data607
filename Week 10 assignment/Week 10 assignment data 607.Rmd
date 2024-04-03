@@ -1,0 +1,486 @@
+---
+title: "Week 10 Assignment  Data 607 KDD"
+author: "Keith DeNivo"
+date: "2024-04-02"
+output: html_document
+---
+
+https://rpubs.com/divide_by_zero/1169279
+
+## Sentiment Analysis Introduction:
+Assignment was to copy the code from tidytextmining.com then to choose a different corpus and perform the same sentiment analysis as the example provided.  Then one additional sentiment lexicon.  In this case the book used sentiment lexicons: nrc, bing, and afinn.  One additional analysis using sentiment lexion: loughran was done. Ultimately The scripts from The Lord of The Rings movies were used as the additional corpus.
+
+Code was orignially from
+https://www.tidytextmining.com/sentiment.html
+
+Silge , J., &  Robinson, D. (n.d.). 2/Sentiment analysis with tidy data. In tidytextmining. essay. Retrieved April 3, 2024, from https://www.tidytextmining.com/sentiment.html. 
+ISBN-10
+1491981652
+ISBN-13
+978-1491981658
+
+r 1-13 are copied from the chapter. only certain libraries were added.
+
+```{r setup}
+library(tidytext)
+library(textdata)
+library(tidyverse)
+library(wordcloud)
+library(RCurl)
+library(quanteda)
+library(readtext)
+get_sentiments("afinn")
+```
+
+```{r 1}
+get_sentiments("bing")
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+
+
+```
+
+```{r 2}
+
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(text, 
+                                regex("^chapter [\\divxlc]", 
+                                      ignore_case = TRUE)))) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+nrc_joy <- get_sentiments("nrc") %>% 
+  filter(sentiment == "joy")
+
+tidy_books %>%
+  filter(book == "Emma") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+
+
+```
+
+```{r 3}
+library(tidyr)
+
+jane_austen_sentiment <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book, index = linenumber %/% 80, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+library(ggplot2)
+
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x")
+
+pride_prejudice <- tidy_books %>% 
+  filter(book == "Pride & Prejudice")
+
+pride_prejudice
+
+```
+
+```{r 4}
+afinn <- pride_prejudice %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(index = linenumber %/% 80) %>% 
+  summarise(sentiment = sum(value)) %>% 
+  mutate(method = "AFINN")
+
+bing_and_nrc <- bind_rows(
+  pride_prejudice %>% 
+    inner_join(get_sentiments("bing")) %>%
+    mutate(method = "Bing et al."),
+  pride_prejudice %>% 
+    inner_join(get_sentiments("nrc") %>% 
+                 filter(sentiment %in% c("positive", 
+                                         "negative"))
+    ) %>%
+    mutate(method = "NRC")) %>%
+  count(method, index = linenumber %/% 80, sentiment) %>%
+  pivot_wider(names_from = sentiment,
+              values_from = n,
+              values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+bind_rows(afinn, 
+          bing_and_nrc) %>%
+  ggplot(aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+
+get_sentiments("nrc") %>% 
+  filter(sentiment %in% c("positive", "negative")) %>% 
+  count(sentiment)
+
+
+
+get_sentiments("bing") %>% 
+  count(sentiment)
+
+```
+
+```{r 5}
+bing_word_counts <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts
+
+```
+
+```{r 6}
+
+bing_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment",
+       y = NULL)
+
+
+```
+
+```{r 7}
+custom_stop_words <- bind_rows(tibble(word = c("miss"),  
+                                      lexicon = c("custom")), 
+                               stop_words)
+
+custom_stop_words
+
+
+```
+
+```{r 8}
+
+library(wordcloud)
+
+tidy_books %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+
+```
+
+
+```{r 9}
+
+library(reshape2)
+
+tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("gray20", "gray80"),
+                   max.words = 100)
+
+
+```
+
+
+```{r 10}
+p_and_p_sentences <- tibble(text = prideprejudice) %>% 
+  unnest_tokens(sentence, text, token = "sentences")
+
+
+```
+
+
+```{r 11}
+
+p_and_p_sentences$sentence[2]
+
+```
+
+```{r 12}
+
+austen_chapters <- austen_books() %>%
+  group_by(book) %>%
+  unnest_tokens(chapter, text, token = "regex", 
+                pattern = "Chapter|CHAPTER [\\dIVXLC]") %>%
+  ungroup()
+
+austen_chapters %>% 
+  group_by(book) %>% 
+  summarise(chapters = n())
+
+
+```
+
+```{r 13}
+
+
+bingnegative <- get_sentiments("bing") %>% 
+  filter(sentiment == "negative")
+
+wordcounts <- tidy_books %>%
+  group_by(book, chapter) %>%
+  summarize(words = n())
+
+tidy_books %>%
+  semi_join(bingnegative) %>%
+  group_by(book, chapter) %>%
+  summarize(negativewords = n()) %>%
+  left_join(wordcounts, by = c("book", "chapter")) %>%
+  mutate(ratio = negativewords/words) %>%
+  filter(chapter != 0) %>%
+  slice_max(ratio, n = 1) %>% 
+  ungroup()
+
+```
+## Performing the same analysis on the scripts for the Lord of the Rings movies.
+
+```{r continued}
+
+library(corpustools)
+library(tm)
+
+episode4 <- getURL("https://storage.googleapis.com/kagglesdsdata/datasets/25491/32521/SW_EpisodeIV.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20240403%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240403T003858Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=5ad0b59ab9ef17cb90a03d81bcdf43bfd5f42c372b6171849f317925bb374f0df4a273806d01df0b63cfd3de634fd2a6fa31f43d29b788cf468501ba8213713bc74d91f3e5ca3193debcdfd78ca7069244973a903907c28c46f8456939b1fb015a8e069f88ea93d9b1db45e40d9f65466c1688e31e4fd4ae5016b42892ef86d9944c93113640740106f1f50d1433979b7042fcb9c31be80a3aa0cec3341d54f3d922041a381e77361c6f58f167a11baf03e14eee3e8be6d81ae4fe22c5ca618bcb6b89b402de63d8e4cc5cc6d722b52b8f7f58ce60d05102301d86bef3e2634dcd25cf5335953fcdd74d1f5b22035b6804b787cac2b8579f2f256003fb47bd72")
+
+episode4df <- data.frame("line", "character", "dialogue")
+
+# The script for Star wars episode 4 a new hope was also considered.
+
+LOTR <- getURL("https://raw.githubusercontent.com/division-zero/Data607/main/Week%2010%20assignment/lotr_scripts.csv")
+
+LOTRdf <- data.frame(read.csv(text = LOTR))
+
+corp_LOTR <- corpus(LOTRdf, text_field = "dialog")
+print(corp_LOTR)
+
+#view(corp_LOTR)
+unique(LOTRdf$movie)
+
+head(LOTRdf)
+
+tidy_LOTR <- LOTRdf %>%
+  group_by(movie) %>%
+  mutate(
+    linenumber = row_number()) %>%
+  ungroup() %>%
+  unnest_tokens(word, dialog)
+
+head(tidy_LOTR)
+
+nrc_joy <- get_sentiments("nrc") %>% 
+  filter(sentiment == "joy")
+
+tidy_LOTR %>%
+  filter(movie == "The Fellowship of the Ring ") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+
+tidy_LOTR %>%
+  filter(movie == "The Fellowship of the Ring ") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+tidy_LOTR %>%
+  filter(movie == "The Two Towers ") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+tidy_LOTR %>%
+  filter(movie == "The Return of the King ") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+
+```
+## LOTR Start
+
+The LOTR csv file containing the line from the three movies was put into a dataframe.
+Each word from the dialog from the scripts were extracted and listed.
+The joyful words from each movie and their number are listed.
+
+```{r LOTR continued}
+LOTR_sentiment <- tidy_LOTR %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(movie, index = linenumber %/% 20, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+library(ggplot2)
+
+ggplot(LOTR_sentiment, aes(index, sentiment, fill = movie)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~movie, ncol = 2, scales = "free_x")
+
+the_fellowship <- tidy_LOTR %>% 
+  filter(movie == "The Fellowship of the Ring ")
+
+the_fellowship
+
+```
+## Sentiment across scripts
+
+The sentiment scores were plotted using the bing sentiment lexicon across the movies' plot, using the scores from 20 lines.  The majority seems to score negatively across the movies.
+```{r LOTR continue2}
+afinn <- the_fellowship %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(index = linenumber %/% 20) %>% 
+  summarise(sentiment = sum(value)) %>% 
+  mutate(method = "AFINN")
+
+bing_and_nrc <- bind_rows(
+  the_fellowship %>% 
+    inner_join(get_sentiments("bing")) %>%
+    mutate(method = "Bing et al."),
+  the_fellowship %>% 
+    inner_join(get_sentiments("nrc") %>% 
+                 filter(sentiment %in% c("positive", 
+                                         "negative"))
+    ) %>%
+    mutate(method = "NRC")) %>%
+  count(method, index = linenumber %/% 20, sentiment) %>%
+  pivot_wider(names_from = sentiment,
+              values_from = n,
+              values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+bind_rows(afinn, 
+          bing_and_nrc) %>%
+  ggplot(aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+
+get_sentiments("nrc") %>% 
+  filter(sentiment %in% c("positive", "negative")) %>% 
+  count(sentiment)
+
+
+
+get_sentiments("bing") %>% 
+  count(sentiment)
+
+```
+## Comparing the sentiment lexicons
+
+We can compare the sentiment analysis from the different sentiment lexicons for the movie:"The Fellowship of the Ring"
+
+```{r LOTR continue3}
+bing_word_counts_LOTR <- tidy_LOTR %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts_LOTR
+
+```
+## List of the Bing sentiments
+
+List of the words and their sentiments from bing for the whole trilogy of movies.
+
+```{r continue4}
+
+
+bing_word_counts_LOTR %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment",
+       y = NULL)
+
+
+```
+## Bing word counts
+
+How each word contributes to each sentiment score using bing.  It lists the most common negative and positive words.
+```{r continue5}
+tidy_LOTR %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+
+```
+## Word Cloud
+
+A word cloud can show the frequency of words in a visual way.
+
+```{r continue6}
+library(reshape2)
+
+tidy_LOTR %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("red", "gray20"),
+                   max.words = 100)
+
+
+```
+## Word Cloud continued
+
+A word Cloud can be manipulated to show the sentiment of the words.
+```{r continue7}
+
+
+bingnegative <- get_sentiments("bing") %>% 
+  filter(sentiment == "negative")
+
+wordcountsLOTR <- tidy_LOTR %>%
+  group_by(movie) %>%
+  summarize(words = n())
+
+tidy_LOTR %>%
+  semi_join(bingnegative) %>%
+  group_by(movie) %>%
+  summarize(negativewords = n()) %>%
+  left_join(wordcountsLOTR, by = c("movie")) %>%
+  mutate(ratio = negativewords/words) %>%
+  filter() %>%
+  slice_max(ratio, n = 3) %>% 
+  ungroup()
+
+```
+
+## Most negative words
+
+The Return of the King had the most negative words for the three movies according to bing.
+
+
+##One additional Sentiment Lexicon "loughran"
+```{r continue8}
+library(syuzhet)
+
+
+unique(get_sentiments("loughran")[,2])
+
+```
+```{r continue9}
+loughran_word_counts_LOTR <- tidy_LOTR %>%
+  inner_join(get_sentiments("loughran")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+loughran_word_counts_LOTR
+
+loughran_word_counts_LOTR %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment",
+       y = NULL)
+
+```
+## Conclusion:
+
+Loughran has additional sentiments and their frequency of the words within the three movies can be plotted. In this assignment we have shown how sentiment analysis used in tidytextmining.com book can be used on a different corpus namely the Lord of the Rings movie scripts. 
