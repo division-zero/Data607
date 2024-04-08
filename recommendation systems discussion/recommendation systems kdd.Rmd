@@ -1,0 +1,32 @@
+---
+title: "recommendation systems Data 606"
+author: "Keith DeNivo"
+date: "2024-04-06"
+output: html_document
+---
+
+## YouTube Recommedation system
+Who are your target users?
+Everyone with internet access is the target user.  There is "youtube kids" which keeps content safe for children.  a recommendation system that can adapt, change and cater to an individual will keep them coming back to the site for advertisement (ad) revenue.  the most lucrative users are the ones who can be convinced to purchase something.  Keeping users addicted to content is key.
+
+What are their key goals? 
+The more views videos can generate the more revenue can be generated.  Advertisement time becomes more valuable when more views and longer view times are acquired. Another goal is having targeted ads  to generate more sales.  Ads can also be used to coax people into buying ad free subscriptions, by making ads abundant before and during videos abundant.  
+
+How can you help them accomplish those goals?
+Often youtubers get sponsored to put ads within their actual video content.  It may be wise to store clips of the different sponsor endorsements and tailor the individual sponsors to the individual watching.  Generally youtubers will get sponsored by something adjacent to the content that they post, which is helpful for sales, but it would probably be more effective if the sponsored clips were played out to individuals more likely to buy that product. A lot of the ads shown on youtube do not appear to target their audience as much as the recommendation system does.  I would suggest improving their ad viewings by using a recommendation system more adjacent to facebook’s ads.
+
+YouTube started its recommendation system as something fairly simple.  The videos that were the most popular were shown on the home page [1].  When YouTube started the users mostly would try to look up the content they wanted through searches [1].  Classifiers were added to videos to flag them as controversial to help stop the spreading of disinformation [1].  . Watch time was also taken into account instead of just clicks [1]. Sensationalist media was demoted agains to help stop disinformation [1]. Promoting factual and fair content.  Demoting of “borderline content” (content that may be controversial) [1].   
+Currently they use deep learning neural networks optimized for increasing watch times instead of clicks [2].  It uses Google’s TensorFlow as its neural network [2].
+
+There are two neural networks, one for candidate generation and another for ranking [2]. The candidate generation looks for videos through the YouTube library/corpus and selects videos based on the users past viewing history[2].  The ranking then assigns a score on each of the selected videos based on the features of the video and the user[2].
+The user implicit feedback is used to train their modules [2].  Implicit feedback (watch times/video completion) is used more than explicit feedback(likes and dislikes) due to explicit feedback being very sparse in comparison [2].
+For video ranking more features describing the video and the user’s features than when looking at the original corpus [2].  Since the videos selected for ranking are only a few hundred it is easier to factor in more details [2].  A deep neural network ranks the video by assigning a score mostly based on predicted watch times for the video [2].  Focusing on watch times reduces the clickbait content provided since it does not depend on how many clicks a video gets [2]. 
+The recommendation system puts more emphasis on newly uploaded content for recommendation to their users [2]. 
+YouTube is mindful of spreading misinformation and uses two complex deep neural networks.  The first one is to pick videos among the site’s library  and the second one is to rank the picked videos to display to the user.
+
+## Sources:
+1.	Goodrow, C. (2021, September 15). On YouTube’s recommendation system. blog.youtube. https://blog.youtube/inside-youtube/on-youtubes-recommendation-system/ 
+
+
+2.	Paul Covington, Jay Adams, and Emre Sargin. 2016. Deep Neural Networks for YouTube Recommendations. In Proceedings of the 10th ACM Conference on Recommender Systems (RecSys '16). Association for Computing Machinery, New York, NY, USA, 191–198. https://doi.org/10.1145/2959100.2959190
+
